@@ -1,4 +1,5 @@
 *.pyc
 *.mo
 *.gz
-local_settings.py
+settings.py
+.*
