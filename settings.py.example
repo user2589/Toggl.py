@@ -1,0 +1,30 @@
+# -*- coding: utf-8 -*-
+
+api_token='put your api token here'
+
+# start_date is a date of first report. I.e. to get first report for Jan 5-11, first date should be Jan 12
+# end_date is a date of last report. I.e. if semester ends 2015-05-08, it is next monday (May 11)
+# YYYY-MM-DD
+start_date = '2015-01-19'
+end_date = '2015-05-11'
+
+#these users will not be counted in number of team members. Usually Studio Manager and mentors
+admin_emails = set([
+    "studiomanager2015@gmail.com",
+])
+
+core_courses = set([
+    '17672 Software Development Studio II',
+    '17657 Communication for Software Engineers II',
+    '17654 Analysis of Software Artifacts ',
+    '17655 Architectures for Software Systems',
+    '17677 MSIT Project I',
+])
+
+# Format string for date date representation in report,
+# https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
+report_date_format = "%b %d"
+
+template_fh = open('template.html', 'rb')
+template = template_fh.read()
+close(template_fh)
