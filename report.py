@@ -15,20 +15,7 @@ _date_format = "%Y-%m-%d"
 
 class Toggl(object):
     baseURL='https://toggl.com/'
-    report_types = {
-        'detailed'  : 'details',
-        'summary'   : 'summary',
-        'weekly'    : 'weekly'
-    }
     date_format = '%Y-%m-%d' #YYYY-MM-DD
-    params = {
-        'user_agent' : 'github.com/user2589/Toggl.py',
-        #workspace_id:
-        #since:
-        #until:
-        'order_field': 'title', #title/day1/day2/day3/day4/day5/day6/day7/week_total
-        'display_hours': 'decimal', #decimal/minutes
-    }
 
     def __init__(self, api_token):
         self.logger = logging.getLogger(__name__)
@@ -88,27 +75,50 @@ class Toggl(object):
 
 
     def weekly_report(self, workspace_id, since, until):
-        data = self._request('reports/api/v2/weekly', {
+        """
+        Toggl weekly report for a given team
+        """
+        #TODO: to support students failing the program, check number of team members for every week
+        return self._request('reports/api/v2/weekly', {
             'workspace_id'  : workspace_id,
             'since'         : since.strftime(self.date_format),
             'until'         : until.strftime(self.date_format),
+            'user_agent' : 'github.com/user2589/Toggl.py',
+            'order_field': 'title', #title/day1/day2/day3/day4/day5/day6/day7/week_total
+            'display_hours': 'decimal', #decimal/minutes
         })
 
 
 def last_sunday(date):
     return date - datetime.timedelta(days = date.weekday()+1)
 
-def weeks(start_date, end_date):
-    return []
+def week_list(start_date, end_date):
+    """
+    returns list of datetime tuples (monday, sunday) for every week in requested interval
+    """
+    w = []
+    sunday = last_sunday(start_date)
+    while sunday < end_date:
+        monday = sunday - datetime.timedelta(days=6)
+        w.append((monday, sunday))
+        sunday += datetime.timedelta(days=7)
+    return w
 
 def create_chart():
-    #http://matplotlib.org/, https://plot.ly/, Gnuplot,
+    """
+    Build chart URL using Google Static Chart API
+    https://developers.google.com/chart/image/docs/chart_params
+    """
+    {
+        'cht' : 'lc', # lc = line chart
+    }
     pass
 
 if __name__ =='__main__':
     logging.basicConfig(level=logging.DEBUG)
     #parse parameters
-    parser = argparse.ArgumentParser(description='Create weekly time report for CMU SE programm for the past week')
+    parser = argparse.ArgumentParser(description='Create weekly time report for CMU SE programm for the past week.'
+            ' HTML printed to stdout')
     parser.add_argument('-d', '--date', help='system date override, YYYY-MM-DD')
     args = parser.parse_args()
     if args.date is None:
@@ -120,8 +130,6 @@ if __name__ =='__main__':
         except ValueError:
             parser.exit(1, "Invalid date\n")
 
-    date = last_sunday(date)
-
     start_date = datetime.datetime.strptime(settings.start_date, _date_format)
     end_date = datetime.datetime.strptime(settings.end_date, _date_format)
 
@@ -132,19 +140,52 @@ if __name__ =='__main__':
     #create report
     report_builder = Toggl(settings.api_token)
     workspaces = report_builder.get_workspaces()
-    date_range = weeks(start_date, end_date)
     projects = []
 
-    # super_report has 3 dimensions: team (aka workspace), course (aka project), and weeks
+    # super_report has 3 dimensions: weeks, course (aka project), and team (aka workspace), i.e.:
+    # for week in weeks:
+    #    for course in courses:
+    #        for team in teams:
+    #            time = super_report[week][team][course]
+    # week is a Monday of the reported week in _date_format
     super_report = {}
 
     # for each team request reports up to 'date', build list of project and aggregate stats
-    for workspace in workspaces:
-        date = start_date
-        while date < end_date:
-            report = report_builder.weekly_report(, date-datetime.timedelta(days=6), date)
+    # courses not in settings.core counted as meta project 'electives'
+    weeks = week_list(start_date, end_date)
+
+    for (monday, sunday) in weeks:
+
+        if sunday > date:
+            break
+        week = monday.strftime(settings.report_date_format)
+        super_report[week] = {}
+
+        for workspace in workspaces:
+            team = workspace['name']
+            super_report[week][team] = {}
+            super_report[week][team]['electives'] = 0
+            report = report_builder.weekly_report(workspace['id'], monday, sunday)
+
+            for project in report['data']:
+
+                #project['totals'] is in miliseconds, divide by 3600000 to convert to hours
+                hours = float(project['totals'][-1])/(3600000*workspace['members'])
+
+                course = project['title']['project']
+                if course in settings.core_courses:
+                    super_report[week][team][course] = hours
+                else:
+                    super_report[week][team]['electives'] += hours
 
 
+    logging.debug("Raw report JSON:\n %s"%json.dumps(super_report))
 
-    #generate charts
+    #generate report file
+    template_vars = {
+        'core_courses'  : json.dumps(list(settings.core_courses)),
+        'week_labels'   : json.dumps([monday.strftime(settings.report_date_format) for (monday, sunday) in weeks]),
+        'report_data'   : json.dumps(super_report),
+    }
 
+    print settings.template%locals()
