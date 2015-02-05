@@ -108,16 +108,6 @@ def week_list(start_date, end_date):
         sunday += datetime.timedelta(days=7)
     return w
 
-def create_chart():
-    """
-    Build chart URL using Google Static Chart API
-    https://developers.google.com/chart/image/docs/chart_params
-    """
-    {
-        'cht' : 'lc', # lc = line chart
-    }
-    pass
-
 if __name__ =='__main__':
     logging.basicConfig(level=logging.WARNING)
     #parse parameters

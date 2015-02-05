@@ -16,7 +16,7 @@ body {
 }
 
 .course {
-    #margin: 20px 0;
+    #margin: 15px 0;
 }
 .header {
     font-size:24px;
@@ -51,10 +51,10 @@ body {
     google.setOnLoadCallback(drawChart);
 
     function drawChart() {
-        courses.forEach(function(course){
+        courses.forEach(function(course, index){
             // get teams who have this course
             // for all weeks, for a given team,
-            $('#container').append("<div class='' id='"+course+"-container'>" +
+            $('#container').append("<div class='"+index+"' id='"+course+"-container'>" +
                                         "<div class='header' id='"+course+"-header'>" + course + "</div>" +
                                         "<div class='chart' id='"+course+"-chart'>" + "</div>" +
                                         "<div class='table' id='"+course+"-table'>" + "</div>" +
@@ -104,7 +104,7 @@ body {
                 pointShape: 'square',
                 pointSize: 15,
                 width: 1100,
-                height: 420
+                height: 430
             };
 
             var chart = new google.visualization.LineChart(document.getElementById(course+'-chart'));
