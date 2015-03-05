@@ -63,13 +63,21 @@ body {
             // Tables
             var data = new google.visualization.DataTable();
             data.addColumn('string', 'Team');
+            data.addColumn('number', 'Avg');
             week_labels.forEach(function(week){
                 data.addColumn('number', week);
             });
 
             teams.forEach(function(team) {
                 if (report_data[course].hasOwnProperty(team)) {
-                    var row = [team];
+                    var avg=0, total_weeks = 0;
+                    report_data[course][team].slice(0).reverse().forEach(function(datapoint){
+                        if (total_weeks > 0 || datapoint > 0) {
+                            total_weeks += 1;
+                            avg += datapoint;
+                        }
+                    })
+                    var row = [team, Math.round(100*avg/total_weeks)/100];
                     data.addRow(row.concat(report_data[course][team]));
                 }
             })
