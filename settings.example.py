@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 api_token='yourapitokenhere'
 
@@ -37,5 +38,6 @@ everething_else = 'electives'
 # https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 report_date_format = "%b %d"
 
-template_fh = open('template.html', 'rb')
+template_path = os.path.join(os.path.dirname(__file__), 'template.html')
+template_fh = open(template_path, 'rb')
 template = template_fh.read()
