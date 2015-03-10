@@ -109,12 +109,21 @@ def week_list(start_date, end_date):
     return w
 
 if __name__ =='__main__':
-    logging.basicConfig(level=logging.WARNING)
     #parse parameters
     parser = argparse.ArgumentParser(description='Create weekly time report for CMU SE programm for the past week.'
             ' HTML printed to stdout')
     parser.add_argument('-d', '--date', help='system date override, YYYY-MM-DD')
+    parser.add_argument('-v', '--verbose', help="Verbose mode, 5 - extra verbose, "
+                        "1 - mute, default: 3", default = 3)
     args = parser.parse_args()
+
+    # configure verboseness
+    try:
+        verboseness = max(1, 5 - int(args.verbose)*1) * 10
+    except ValueError:
+        verboseness = 30
+    logging.basicConfig(level=verboseness)
+
     if args.date is None:
         date = datetime.datetime.now()
         logging.debug("No date specified, using system date: %s"%date.strftime(_date_format))
