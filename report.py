@@ -88,8 +88,22 @@ class Toggl(object):
             'since'         : since.strftime(self.date_format),
             'until'         : until.strftime(self.date_format),
             'user_agent' : 'github.com/user2589/Toggl.py',
-            'order_field': 'title', #title/day1/day2/day3/day4/day5/day6/day7/week_total
+            'order_field': 'title', #title/day1/day2/day3/day4/day5/day6/day7/week_total in weekly report
             'display_hours': 'decimal', #decimal/minutes
+        })
+
+    def detailed_report(self, workspace_id, since, until):
+        """
+        Toggl detailed report for a given team
+        """
+        return self._request('reports/api/v2/details', {
+            'workspace_id'  : workspace_id,
+            'since'         : since.strftime(self.date_format),
+            'until'         : until.strftime(self.date_format),
+            'user_agent'    : 'github.com/user2589/Toggl.py',
+            'order_field'   : 'duration', #date/description/duration/user in detailed reports
+            'order_desc'    : 'on', #on/off
+            'display_hours' : 'decimal', #decimal/minutes
         })
 
 
