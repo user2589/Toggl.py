@@ -67,7 +67,6 @@ class Toggl(object):
                             if 'personal' not in w['name'] and w['admin']]
 
         #get number of people in workspace
-        print "\n\n\n"
         for workspace in workspaces:
             users = self._request('api/v8/workspaces/%s/users'%workspace['id'])
             workspace['members'] = sum([u['email'] not in settings.admin_emails for u in users])
