@@ -9,7 +9,7 @@ import csv
 import sys
 import report
 
-fields = ['user', 'team', 'duration', 'project', 'date']
+from collections import defaultdict
 
 if __name__ =='__main__':
     parser = argparse.ArgumentParser(
@@ -51,29 +51,93 @@ if __name__ =='__main__':
     weeks = report.week_list(start_date, end_date)
     week_names = [m.strftime(settings.report_date_format) for (m, s) in weeks]
 
-    writer = csv.DictWriter(sys.stdout, fields)
-    writer.writeheader()
+    err_writer = csv.DictWriter(sys.stderr, ['user', 'team', 'duration', 'project', 'date', 'rule'])
+    err_writer.writeheader()
+    last_records = {} # last_records[user] = last_record
 
-    # for each team request reports up to 'date', build list of project and aggregate stats
+    # super_report[team][user][course][week]
+    super_report = defaultdict(
+                    lambda:defaultdict(
+                        lambda:defaultdict(
+                            lambda:defaultdict(lambda: 0))))
+
+    week_names = []
 
     for (monday, sunday) in weeks:
-
         if sunday > date:
             break
         week = monday.strftime(settings.report_date_format)
+        week_names.append(week)
 
         for workspace in workspaces:
-            report = report_builder.detailed_report(workspace['id'], monday, sunday)
+            records_read = 0
+            page = 1
+            while True:
+                report = report_builder.detailed_report(workspace['id'], monday, sunday, page)
 
-            for record in report['data']:
-                #record duration is in miliseconds, divide by 3600000 to convert to hours
-                hours = float(record['dur'])/3600000
-                if hours > args.threshold:
-                    writer.writerow({
-                        'user'    : record['user'],
-                        'team'    : workspace['name'],
-                        'duration': round(hours, 2),
-                        'project' : record['project'],
-                        'date'    : record['start'].split('T', 1)[0],
-                        })
+                for record in report['data']:
+                    #record duration is in miliseconds, divide by 3600000 to convert to hours
+                    hours = round(float(record['dur'])/3600000, 2)
+                    start = record['start'].split('T', 1)[0]
+
+                    # TIME LOGGING SANITY CHECK - long records, missing project, overlapping
+
+                    # missing project
+                    if not record['project']: # usually None, but want to detect empty string as well
+                        record['project'] = '(no project)'
+                        err_writer.writerow({
+                            'user'    : record['user'],
+                            'team'    : workspace['name'],
+                            'rule'    : 'record without project',
+                            'duration': hours,
+                            'project' : record['project'],
+                            'date'    : start,
+                            })
+
+                    # check for overlapping entry
+                    if record['user'] in last_records and last_records[record['user']]['end'] > record['start']:
+                        err_writer.writerow({
+                            'user'    : record['user'],
+                            'team'    : workspace['name'],
+                            'rule'    : 'overlapping entry: %(start)s %(project)s'%record,
+                            'duration': hours,
+                            'project' : record['project'],
+                            'date'    : start,
+                            })
+                    last_records[record['user']] = record
+
+                    # long records
+                    if hours > args.threshold:
+                        err_writer.writerow({
+                            'user'    : record['user'],
+                            'team'    : workspace['name'],
+                            'rule'    : 'record > %s hours'% args.threshold,
+                            'duration': hours,
+                            'project' : record['project'],
+                            'date'    : start,
+                            })
+
+                    # ACTUAL REPORTING
+                    super_report[workspace['name']][record['user']][record['project']][week] = \
+                        round(super_report[workspace['name']][record['user']][record['project']][week] + hours, 2)
+
+                records_read += report['per_page']
+                page += 1
+                if records_read >= report['total_count']:
+                    break
+
+    report_writer = csv.DictWriter(sys.stdout, ['user', 'team', 'project', 'avg'] + week_names)
+    report_writer.writeheader()
+
+    for team, team_records in super_report.items():
+        for user, user_records in team_records.items(): # user_records = super_report[team][user]
+            for project, project_records in user_records.items(): # project_records = super_report[team][user][project]
+                average = sum(project_records.values()) / len(project_records)
+                project_records.update({
+                    'user' : user,
+                    'team' : team,
+                    'project': project,
+                    'avg'   : round(average,2),
+                })
+                report_writer.writerow(project_records)
 
