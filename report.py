@@ -91,7 +91,7 @@ class Toggl(object):
             'display_hours': 'decimal', #decimal/minutes
         })
 
-    def detailed_report(self, workspace_id, since, until):
+    def detailed_report(self, workspace_id, since, until, page=1):
         """
         Toggl detailed report for a given team
         """
@@ -100,9 +100,10 @@ class Toggl(object):
             'since'         : since.strftime(self.date_format),
             'until'         : until.strftime(self.date_format),
             'user_agent'    : 'github.com/user2589/Toggl.py',
-            'order_field'   : 'duration', #date/description/duration/user in detailed reports
-            'order_desc'    : 'on', #on/off
+            'order_field'   : 'date',    #date/description/duration/user in detailed reports
+            'order_desc'    : 'off', #on/off
             'display_hours' : 'decimal', #decimal/minutes
+            'page'          : page
         })
 
 
