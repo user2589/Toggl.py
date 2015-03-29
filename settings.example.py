@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-api_token='yourapitokenhere'
+api_token = 'yourapitokenhere'
 
 # start_date is a date of first report. I.e. to get first report for Jan 5-11, first date should be Jan 12
 # end_date is a date of last report. I.e. if semester ends 2015-05-08, it is next monday (May 11)

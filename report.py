@@ -16,7 +16,7 @@ import datetime
 _date_format = "%Y-%m-%d"
 
 class Toggl(object):
-    baseURL='https://toggl.com/'
+    baseURL = 'https://toggl.com/'
     date_format = '%Y-%m-%d' #YYYY-MM-DD
 
     def __init__(self, api_token):
@@ -33,7 +33,7 @@ class Toggl(object):
         # build ULR of API request, which looks like:
         # https://${base_url}/{api_func}?param1=foo&param2=bar
         query = '' if params is None else '?' + urllib.urlencode(params)
-        url =  ''.join((self.baseURL, api_func, query))
+        url = ''.join((self.baseURL, api_func, query))
         self.logger.debug("_build_url: %s:"%url)
         return url
 
@@ -75,7 +75,7 @@ class Toggl(object):
 
     def get_projects(self, workspace_id):
         data = self._request('api/v8/workspaces/%s/projects'%workspace_id)
-
+        return data
 
     def weekly_report(self, workspace_id, since, until):
         """
@@ -108,27 +108,27 @@ class Toggl(object):
 
 
 def last_sunday(date):
-    return date - datetime.timedelta(days = date.weekday()+1)
+    return date - datetime.timedelta(days=date.weekday()+1)
 
 def week_list(start_date, end_date):
     """
     returns list of datetime tuples (monday, sunday) for every week in requested interval
     """
-    w = []
+    weeks = []
     sunday = last_sunday(start_date)
     while sunday < end_date:
         monday = sunday - datetime.timedelta(days=6)
-        w.append((monday, sunday))
+        weeks.append((monday, sunday))
         sunday += datetime.timedelta(days=7)
-    return w
+    return weeks
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     #parse parameters
     parser = argparse.ArgumentParser(description='Create weekly time report for CMU SE programm for the past week.'
             ' HTML printed to stdout')
     parser.add_argument('-d', '--date', help='system date override, YYYY-MM-DD')
     parser.add_argument('-v', '--verbose', help="Verbose mode, 5 - extra verbose, "
-                        "1 - mute, default: 3", default = 3)
+                        "1 - mute, default: 3", default=3)
     args = parser.parse_args()
 
     # configure verboseness
@@ -140,7 +140,7 @@ if __name__ =='__main__':
 
     if args.date is None:
         date = datetime.datetime.now()
-        logging.debug("No date specified, using system date: %s"%date.strftime(_date_format))
+        logging.debug("No date specified, using system date: %s", date.strftime(_date_format))
     else:
         try:
             date = datetime.datetime.strptime(args.date, _date_format)
@@ -158,7 +158,7 @@ if __name__ =='__main__':
     report_builder = Toggl(settings.api_token)
     workspaces = report_builder.get_workspaces()
 
-    logging.debug("Raw workspaces JSON:\n %s"%json.dumps(workspaces))
+    logging.debug("Raw workspaces JSON:\n %s", json.dumps(workspaces))
 
     # super_report has 3 dimensions: weeks, course (aka project), and team (aka workspace), i.e.:
     # for week in weeks:
@@ -200,13 +200,13 @@ if __name__ =='__main__':
                 else:
                     super_report[week][team][electives] += hours
 
-    logging.debug("Raw super_report JSON:\n %s"%json.dumps(super_report))
+    logging.debug("Raw super_report JSON:\n %s", json.dumps(super_report))
 
     # super_report contains all the data we need, but it is not suitable for rendering.
     # here it will be converted to report_data, which will be iterated this way:
     # report_data[course][team] = [week1, week2, week3...week12]
 
-    team_names   = [ws['name'] for ws in workspaces]
+    team_names = [ws['name'] for ws in workspaces]
     report_data = {}
 
     for course in settings.core_courses + [electives]:
@@ -224,7 +224,7 @@ if __name__ =='__main__':
                     else:
                         report_data[course][team].append(None)
 
-    logging.debug("Raw report_data JSON:\n %s"%json.dumps(report_data))
+    logging.debug("Raw report_data JSON:\n %s", json.dumps(report_data))
 
     course_names = [c for c in settings.core_courses+[electives] if c in report_data]
 

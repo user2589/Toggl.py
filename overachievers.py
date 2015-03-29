@@ -17,7 +17,7 @@ if __name__ =='__main__':
     parser.add_argument('-d', '--date', help='system date override, YYYY-MM-DD')
     parser.add_argument('-n', '--threshold', type=int, default=10, help='time record threshold in hours')
     parser.add_argument('-v', '--verbose', help="Verbose mode, 5 - extra verbose, "
-                        "1 - mute, default: 3", default = 3)
+                        "1 - mute, default: 3", default=3)
     args = parser.parse_args()
 
     # configure verboseness
@@ -30,7 +30,7 @@ if __name__ =='__main__':
     _date_format = report._date_format
     if args.date is None:
         date = datetime.datetime.now()
-        logging.debug("No date specified, using system date: %s"%date.strftime(_date_format))
+        logging.debug("No date specified, using system date: %s", date.strftime(_date_format))
     else:
         try:
             date = datetime.datetime.strptime(args.date, _date_format)
@@ -57,9 +57,9 @@ if __name__ =='__main__':
 
     # super_report[team][user][course][week]
     super_report = defaultdict(
-                    lambda:defaultdict(
-                        lambda:defaultdict(
-                            lambda:defaultdict(lambda: 0))))
+                    lambda: defaultdict(
+                        lambda: defaultdict(
+                            lambda: defaultdict(lambda: 0))))
 
     week_names = []
 
@@ -137,7 +137,7 @@ if __name__ =='__main__':
                     'user' : user,
                     'team' : team,
                     'project': project,
-                    'avg'   : round(average,2),
+                    'avg'  : round(average, 2),
                 })
                 report_writer.writerow(project_records)
 
