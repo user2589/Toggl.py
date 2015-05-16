@@ -5,7 +5,7 @@ Toggl.py is a time report builder, taking data from [Toggl](toggl.com) time trac
 
 It was created for internal use by students in Software Engineering program and tailored for academic purposes. However, I will be glad to hear it is used in industry as well.
 
-At the moment three types of reports available:
+At the moment three types of reports are available:
 
 - team time report, charts with weekly teams effort
 - individual time report, CSV file
@@ -32,9 +32,9 @@ Then, adjust settings. There is an example settings file you can use as a templa
 
 Following settings available:
 
-- `api_token` - Toggl api token, you can find it in [toggl profile](toggl.com/app/profile). Good practice is to create a separate account with access to all monitored teams' workspaces.
+- `api_token` - Toggl api token, you can find it in [toggl profile](https://toggl.com/app/profile). Good practice is to create a separate account with access to all monitored teams' workspaces.
 - `start_date` and `end_date` - boundaries of the period monitored in `YYY-MM-DD` format. In academia we use semesters, for industry use you might consider quarters. 
-- `admin_emails` - List of user emails not to be counted towards number of team mbmers. There is a widespread practice to give supervisor access to team workspace, but this account does not contribute to team's effort. This setting is a way for supervisor not be counted when average effort is calculated.
+- `admin_emails` - List of user emails not to be counted towards number of team mbmers. There is a common practice to give supervisor access to all team workspaces, but this account does not contribute to teams' effort. This setting is a way for supervisor account not to be counted when average effort is calculated.
 - `core_courses` - projects you want to get separated in stats. Everything else will be aggregated to a single entity, which will be named by value of `everything_else` setting. It is named so because of the academic past of this tool.
 - `everything_else` - see `core_courses` description
 - `report date format` - data format to be used to name Mondays in weekly time report
@@ -63,14 +63,16 @@ This report produced by `report.py` using template. Template string is set in se
 - `courses` list of courses from `settings.core_courses` plus one more entity named by `settings.everything_else`. If there are no time records for some project, it will not be included in report. Example:
 > ["Project Sunshine", "Project Smile", "other stuffs"]
 - `report_data` - actual report data in format `report.course.team.weekly_data`. Example: 
-> {
-> "Project Sunshine": {
->       "Team Alpha": [3.64, 10.29, 10.54, nul, ...],
->       "Team Bravo": [3.24, 7.26, 8.89, nul, ...],
->       ...
->   }, ...
->}
-
+```
+    {
+        "Project Sunshine": {
+           "Team Alpha": [3.64, 10.29, 10.54, nul, ...],
+           "Team Bravo": [3.24, 7.26, 8.89, nul, ...],
+            ...
+        }, 
+        ...
+    }
+```
 Please note that default template contains a workaround not to count Spring Break towards total number of weeks. Look for `spring_break_idx` in template.html, set it blank if you don't need this feature.
 
 Individual time report
