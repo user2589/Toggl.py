@@ -56,6 +56,8 @@ body {
         var spring_break_idx = week_labels.indexOf("Mar 09");
         if (spring_break_idx < 0) spring_break_idx = 100;
 
+        week_labels.push('Avg');
+
         courses.forEach(function(course, index){
             // get teams who have this course
             // for all weeks, for a given team,
@@ -68,7 +70,6 @@ body {
             // Tables
             var data = new google.visualization.DataTable();
             data.addColumn('string', 'Team');
-            data.addColumn('number', 'Avg');
             week_labels.forEach(function(week){
                 data.addColumn('number', week);
             });
@@ -86,7 +87,8 @@ body {
                     // spring break workaround
                     if (total_weeks >= spring_break_idx)  total_weeks--;
 
-                    var row = [team, Math.round(100*avg/total_weeks)/100];
+                    report_data[course][team].push(Math.round(100*avg/total_weeks)/100);
+                    var row = [team];
                     data.addRow(row.concat(report_data[course][team]));
                 }
             })
@@ -109,7 +111,7 @@ body {
                 var row = [week];
                 teams.forEach(function(team) {
                     if (report_data[course].hasOwnProperty(team)) {
-                        row = row.concat(report_data[course][team][i]);
+                        row.push(report_data[course][team][i]);
                     }
                 });
                 data.addRow(row);
