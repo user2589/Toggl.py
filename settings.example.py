@@ -17,6 +17,7 @@ admin_emails = set([
 # set of core courses, in exactly the same order as it will appear in the report
 # Everything not in this list will be counted as electives
 core_courses = [
+    '17602 Introduction to Personal SoftwareProcess',
     '17671 Software Development Studio I',
     '17672 Software Development Studio II',
     '17673 Software Development Studio III',
