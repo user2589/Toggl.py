@@ -66,7 +66,7 @@ class Toggl(object):
         data = self._request('api/v8/workspaces')
 
         # filter out personal workspaces:
-        workspaces = [{'name': w['name'], 'id': w['id']} for w in data \
+        workspaces = [{'name': w['name'], 'id': w['id']} for w in data
                       if 'personal' not in w['name'] and w['admin']]
 
         # get number of people in workspace
@@ -250,10 +250,20 @@ if __name__ == '__main__':
 
     # generate report file
     template_vars = {
-        'courses': json.dumps(course_names),
-        'week_labels': json.dumps(week_names),
-        'report_data': json.dumps(report_data),
-        'teams': json.dumps(team_names)
     }
 
-    print settings.template % template_vars
+    print settings.template
+    print """<script>
+    var week_labels = {week_labels};
+    var report_data = {report_data};
+    var teams = {teams};
+    var courses = {courses};
+    var timestamp = {timestamp};
+        </script>"""    .format(
+        courses=json.dumps(course_names),
+        week_labels=json.dumps(week_names),
+        report_data=json.dumps(report_data),
+        teams=json.dumps(team_names),
+        timestamp=json.dumps(datetime.datetime.now().strftime(
+                             "%b %d %Y %I:%M%p"))
+        )
