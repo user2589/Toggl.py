@@ -18,7 +18,7 @@ body {
     min-width: 1300px;
 }
 .course {
-    #margin: 1em 0;
+    margin: 1em 0;
 }
 .header {
     font-size:2em;
@@ -61,6 +61,31 @@ body {
     var teams = ["Team Alpha", "Team Charlie", "Team Bravo"];
     var courses = ["Project Sunshine", "electives"];
     var timestamp = "Jun 09 2015 12:34PM";
+    var deviations = {
+        "Project Sunshine": {
+            "Team Alpha": 4.1,
+            "Team Bravo": 8.79,
+            "Team Charlie": 63.64,
+        },
+        "Project Smiley": {
+            "Team Alpha": 13.94,
+            "Team Bravo": 22.93,
+            "Team Charlie": 6.7,
+        }
+    };
+    var average = {
+        "Project Sunshine": {
+            "Team Alpha": 18.0,
+            "Team Bravo": 19.0,
+            "Team Charlie": 17.88,
+        },
+        "Project Smiley": {
+            "Team Alpha": 17.37,
+            "Team Bravo": 6.1,
+            "Team Charlie": 21.61
+        }
+    };
+
     /* */
 
     google.load("visualization", "1", {packages:["table", "corechart"]});

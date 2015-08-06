@@ -3,16 +3,12 @@ import os
 
 api_token = 'yourapitokenhere'
 
-# start_date is a date of first report. I.e. to get first report for Jan 5-11, first date should be Jan 12
-# end_date is a date of last report. I.e. if semester ends 2015-05-08, it is next monday (May 11)
+# start_date is a date of first report. I.e. to get first report for Jan 5-11,
+# first date should be Jan 12 end_date is a date of last report. I.e. if
+# semester ends 2015-05-08, it is next monday (May 11)
 # YYYY-MM-DD
 start_date = '2015-01-19'
 end_date = '2015-05-11'
-
-#these users will not be counted in number of team members. Usually Studio Manager and mentors
-admin_emails = set([
-    "studiomanager@university.edu",
-])
 
 # set of core courses, in exactly the same order as it will appear in the report
 # Everything not in this list will be counted as electives
