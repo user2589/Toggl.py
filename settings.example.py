@@ -10,6 +10,10 @@ api_token = 'yourapitokenhere'
 start_date = '2015-01-19'
 end_date = '2015-05-11'
 
+# Date format used in settings, messages and input parameters.
+# Note it might be different from Toggl.date_format
+date_format = "%Y-%m-%d"
+
 # set of core courses, in exactly the same order as it will appear in the report
 # Everything not in this list will be counted as electives
 core_courses = [
@@ -17,6 +21,7 @@ core_courses = [
     '17671 Software Development Studio I',
     '17672 Software Development Studio II',
     '17673 Software Development Studio III',
+    '17674 Software Development Studio IV',
     '17677 MSIT Project I',
     '17678 MSIT Project II',
     '17651 Models of Software Systems',
