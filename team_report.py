@@ -99,6 +99,9 @@ if __name__ == '__main__':
                     ) / max(len(team_members[team])-1, 1),
                 2)
 
+    projects = [c for c in settings.core_courses + [settings.everything_else]
+               if c in team_report]
+
     print settings.template
     print """<script>
         var week_labels = {week_labels};
@@ -109,7 +112,7 @@ if __name__ == '__main__':
         var variance = {variance};
         var average = {average};
         </script>""".format(
-        projects=json.dumps(team_report.keys()),
+        projects=json.dumps(projects),
         week_labels=json.dumps(week_names),
         report_data=json.dumps(team_report),
         teams=json.dumps(team_members.keys()),
