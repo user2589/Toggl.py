@@ -1,0 +1,202 @@
+<html>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>MSIT-SE detailed report</title>
+    <link href='//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.6.1/fullcalendar.min.css' rel='stylesheet' />
+    <style>
+        body {
+            padding: 0;
+            font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+            font-size: 14px;
+        }
+        #calendar {
+            float: left;
+            max-width: 900px;
+            margin: 1em auto;
+        }
+        #conrols {
+            float:left;
+            min-width:200px;
+            max-width:260px;
+            margin-right: 1em;
+            overflow: hidden
+        }
+        #courses .total {
+            font-weight:bold;
+            text-align: right;
+        }
+        #links {
+            margin-top:1em;
+        }
+        #links a {
+            display:block;
+            margin-left:1em;
+        }
+        #teams { display: block;}
+        .core1 {background-color:#109618;}
+        .core2 {background-color:#909;}
+        .core3 {background-color:#09c;}
+        .core4 {background-color:#36c;}
+        .core5 {background-color:#d47;}
+        .elective {background-color:gray;}
+        .violation {background-color:red;}
+    </style>
+
+<div id='conrols'>
+    <select id='teams'>
+        <option value="">Select a team</option>
+    </select>
+    <select id='students' disabled></select>
+
+    <table id='courses'>
+        <tr><th colspan='2'>Legend</th></tr>
+        <tr class='violation'><td class='legend'>Logging violation</td><td class='violation total'>0</td></tr>
+        <tr class='core1'><td class='legend'>Models or Project</td><td class='total'>0</td></tr>
+        <tr class='core2'><td class='legend'>Methods or Analysis</td><td class='total'>0</td></tr>
+        <tr class='core3'><td class='legend'>MSD or Architecture</td><td class='total'>0</td></tr>
+        <tr class='core4'><td class='legend'>English or Communication</td><td class='total'>0</td></tr>
+        <tr class='elective'><td class='legend'>Elective</td><td class='total'>0</td></tr>
+        <tr class='sum'><td class='legend'>Total</td><td class='total'>0</td></tr>
+    </table>
+
+    <div id='links'>
+        Useful links:
+        <a href='individual.csv'>Individual report</a>
+        <a href='violations.csv'>Violations report</a>
+        <a href='detailed.csv'>Detailed report</a>
+    </div>
+</div>
+
+<div id='calendar'></div>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js'></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.6.1/fullcalendar.min.js'></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/jquery.ba-bbq/1.2.1/jquery.ba-bbq.min.js'></script>
+<script>
+$(document).ready(function() {
+    $(window).bind('hashchange', function(event){
+        var team = event.getState('team') || '',
+            student = event.getState('student') || '',
+            week = event.getState('week');
+        if (team != $('#teams').val() || !team) $('#teams').val(team).change();
+        if (student != $('#students').val() || !student) $('#students').val(student).change();
+    });
+    Papa.parse("detailed.csv", {
+        download: true,
+        complete: function(results) {
+            if (results.errors.length) {
+                console.log(results.errors);
+                return;
+            }
+            var classes = {
+                    'Software Development Studio I': 'core1',
+                    'Software Development Studio II': 'core1',
+                    'Software Development Studio III': 'core1',
+                    'MSIT Project I': 'core1',
+                    'MSIT Project II': 'core1',
+                    'Models of Software Systems': 'core1',
+                    'Methods: Deciding What to Design': 'core2',
+                    'Managing Software Development': 'core3',
+                    'Analysis of Software Artifacts': 'core2',
+                    'Architectures for Software Systems': 'core3',
+                    'Communication for Software Engineers I': 'core4',
+                    'Communication for Software Engineers II': 'core4'
+                };
+            var data = {};
+            // result.data[0] is a headers row
+            // user, team, project, start, duration (h)
+            // e.g.: Alex, Team A, MSIT Project I, 2016-01-11T08:00:00, 0.77
+            for (var i=1; i < results.data.length; i++) {
+                var user = results.data[i][0],
+                    team = results.data[i][1],
+                    proj = results.data[i][2],
+                    start = results.data[i][3],
+                    duration = results.data[i][4];
+                if (!team) continue; // e.g. extra newline at the end of the CSV
+                if (!(team in data)) {
+                    data[team] = {};
+                    $('#teams').append('<option value="'+team+'">'+team+'</option>');
+                }
+                if (!(user in data[team])) data[team][user] = [];
+                data[team][user].push([proj, start, duration]);
+            }
+            $('#teams').change(function(){
+                $('#students').empty().prop('disabled', true).append('<option value="">Select a student</option>');
+                if (this.value) $.each(data[this.value], function(student) {
+                    $('#students').append('<option value="'+student+'">'+student+'</option>');
+                });
+                $('#students').prop('disabled', !this.value);
+                if (this.value || $.bbq.getState('team')) $.bbq.pushState({'team': this.value});
+            });
+            $('#students').change(function(){
+                $('#courses').toggle(false);
+                $('#calendar').fullCalendar('destroy');
+                if (!this.value) return;
+                $.bbq.pushState({'student': this.value});
+
+                var events = [];
+                var lastEnd = moment(0);
+                data[$('#teams').val()][$('#students').val()].forEach(function(item) {
+                    var title = item[0],
+                        start = item[1],
+                        duration = parseFloat(item[2]);
+                    if (duration == 0) return;
+                    var end = moment(start).add(duration, 'hours');
+                    var className = classes[title] || 'elective';
+                    // violations
+                    if (moment(start).isBefore(lastEnd.subtract(1, 'minute')) || // overlapping entries
+                        duration > 10 || // entry over 10 hours
+                        !title) { // record without project
+                        className = 'violation';
+                    };
+                    lastEnd = moment.max(end, lastEnd)
+
+                    events.push({
+                        title: title,
+                        start: start,
+                        end: end.format(),
+                        className: className
+                    });
+                });
+
+                var defaultDate = $.bbq.getState('week') || moment(results.data[results.data.length-1][1]).subtract(6, 'day').format();
+
+                // display calendar
+                $('#calendar').fullCalendar({
+                    header: {
+                        right: 'title',
+                        left: 'prev,next today'
+                    },
+                    defaultDate: defaultDate,
+                    firstDay: 1, // Sunday=0, Monday=1, Tuesday=2, etc.
+                    defaultView: 'agendaWeek',
+                    aspectRatio: 0.82,
+                    // theme: true,
+                    events: events,
+                    eventAfterAllRender: function(view) {
+                        var stats = {},
+                            weekTotal = 0;
+                        events.forEach(function(event){
+                            if (moment(event.start).isBetween(view.intervalStart, view.intervalEnd)) {
+                                if (!(event.className in stats)) stats[event.className] = 0.0;
+                                stats[event.className] += moment(event.end).diff(event.start, 'seconds') / 3600;
+                            }
+                        });
+                        $.each(stats, function(course, total) {
+                            $('#courses .'+course+' .total').text(Math.round(total*100)/ 100);
+                            weekTotal += total;
+                        });
+                        $('#courses .sum .total').text(Math.round(weekTotal*100)/ 100);
+                        $.bbq.pushState({'week': view.start.format()});
+                    },
+                });
+                $('#courses').toggle(true);
+            }).change();
+            $(window).trigger('hashchange');
+        }
+    });
+});
+</script>
