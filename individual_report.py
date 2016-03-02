@@ -59,12 +59,13 @@ if __name__ == '__main__':
         if not week_names or week_names[-1] != week_name:
             week_names.append(week_name)
 
-        # record duration is in milliseconds
-        # divide by 3600000 to convert to hours
         hours = float(record['duration'])
         # example of record['start'] = 2015-05-29T16:07:20
         record_date = record['start'][:10]
-        duration = datetime.timedelta(hours=hours)
+        # -1 minute is to compensate for round error in conversion to hours
+        # this duration is only used to check for overlapping entries and
+        # should not affect overall statistics
+        duration = datetime.timedelta(hours=hours, minutes=-1)
         end = datetime.datetime.strptime(
             record['start'], detailed_report_date_format) + duration
         record['end'] = end.strftime(detailed_report_date_format)
