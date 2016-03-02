@@ -48,7 +48,7 @@ Detailed report is a CSV file with columns: user, team, project, start, duration
 
     ./detailed_report > detailed.csv
 
-If you serve CSV reports by a web service, there is a nice visualization of the detailed report (check out the [screenshot](docs/Detaills.png)). Just put `detais.html` into the same folder as CSV files, under the webroot directory of the HTTP server. Usually, it is a good idea to restrict access to detailed and individual reports for privacy purposes, e.g. by using [htpasswd](https://httpd.apache.org/docs/2.4/programs/htpasswd.html) file for Apache2
+If you serve CSV reports by a web service, there is a nice visualization of the detailed report (check out the [screenshot](docs/Details.png). Just put `detais.html` into the same folder as CSV files, under the webroot directory of the HTTP server. Usually, it is a good idea to restrict access to detailed and individual reports for privacy purposes, e.g. by using [htpasswd](https://httpd.apache.org/docs/2.4/programs/htpasswd.html) file for Apache2
 
 Individual report
 -----------
