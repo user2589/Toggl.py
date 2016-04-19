@@ -88,6 +88,13 @@ if __name__ == '__main__':
             break
 
         for ws_name, ws_id in workspaces:
+            active_users = report_builder.get_active_workspace_users(ws_id)
+
+            for record in report_builder.detailed_report(ws_id, monday, sunday):
+                # exclude inactive users
+                if record['user'] not in active_users:
+                    continue
+
             for record in report_builder.detailed_report(ws_id, monday, sunday):
                 # record duration is in milliseconds
                 # divide by 3600000 to convert to hours

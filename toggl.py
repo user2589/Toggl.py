@@ -77,6 +77,18 @@ class Toggl(object):
         return [u['email'] for u in self._request(
             'api/v8/workspaces/{0}/users'.format(workspace_id))]
 
+    def get_active_workspace_users(self, workspace_id):
+        """ Get list of workspace user names who are active
+        :param workspace_id: toggl workspace id, obtained from get_workspaces
+        :return list of names, e.g. ['John Swift', 'Anton T.', ...]
+
+        More information on API call output:
+        https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspace_users.md
+        """
+        users = self._request('api/v8/workspaces/{0}/workspace_users'.format(workspace_id))
+        # attribute 'inactive' is type of 'bool'
+        return [u['name'] for u in filter(lambda user: user['inactive'] == False, users)]
+
     def get_projects(self, workspace_id):
         """ Get projects information
         :param workspace_id: toggle workspace id, obtained from get_workspaces
