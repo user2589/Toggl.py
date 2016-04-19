@@ -95,7 +95,6 @@ if __name__ == '__main__':
                 if record['user'] not in active_users:
                     continue
 
-            for record in report_builder.detailed_report(ws_id, monday, sunday):
                 # record duration is in milliseconds
                 # divide by 3600000 to convert to hours
                 report_writer.writerow({
