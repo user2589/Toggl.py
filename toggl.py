@@ -6,6 +6,11 @@ import urllib
 import logging
 
 
+class TogglException(IOError):
+    """ Custom exception to indicate Toggl API errors"""
+    pass
+
+
 class Toggl(object):
     """ Class to access Toggl API
 
@@ -45,11 +50,11 @@ class Toggl(object):
         self.logger.debug("Response from Toggl: %s" % response_text)
         response_json = json.loads(response_text)
         if 'error' in response_json:
-            self.logger.error("""Error getting Toggl data:
+            raise TogglException("""Error getting Toggl data:
             message: %(message)s
             tip: %(tip)s
             code: %(code)s""" % response_json['error'])
-            raise
+
         return response_json
 
     def _request(self, api_func, params=None):
