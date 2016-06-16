@@ -40,6 +40,9 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--date', help='system date override, YYYY-MM-DD')
     parser.add_argument('-v', '--verbose',  default=3,
                         help="Verboseness, 5: debug, 1: quiet, default: 3")
+    parser.add_argument('-a', '--all', action='store_true',
+                        help="Include records from disabled users (omitted by "
+                             "default)")
     args = parser.parse_args()
 
     # configure verboseness
@@ -88,11 +91,13 @@ if __name__ == '__main__':
             break
 
         for ws_name, ws_id in workspaces:
-            active_users = report_builder.get_active_workspace_users(ws_id)
+            inactive_users = set() if args.all else \
+                set(u['name'] for u in
+                    report_builder.get_workspace_users(ws_id, inactive=True))
 
             for record in report_builder.detailed_report(ws_id, monday, sunday):
                 # exclude inactive users
-                if record['user'] not in active_users:
+                if record['user'] in inactive_users:
                     continue
 
                 # record duration is in milliseconds

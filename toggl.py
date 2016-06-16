@@ -57,12 +57,15 @@ class Toggl(object):
 
         return response_json
 
-    def _request(self, api_func, params=None):
+    def _request(self, api_func, params=None, filters=None):
         url = self._build_url(api_func, params)
-        return self._get_json(url)
+        if filters is None:
+            return self._get_json(url)
+        return [i for i in self._get_json(url)
+                if all(i.get(k) == v for k, v in filters.items())]
 
     def get_workspaces(self):
-        """ Get workspaces list
+        """ Get the list of workspaces
         :returns 2-tuple list of workspaces: [(<name>, <id>), ...].
         """
         data = self._request('api/v8/workspaces')
@@ -71,40 +74,32 @@ class Toggl(object):
         return [(w['name'], w['id']) for w in data
                 if 'personal' not in w['name'] and w['admin']]
 
-    def get_workspace_users(self, workspace_id):
-        """ Get list of workspace user emails.
+    def get_workspace_users(self, workspace_id, **filters):
+        """ Get the list of workspace users.
         :param workspace_id: toggle workspace id, obtained from get_workspaces
-        :return: list of emails, e.g. ['john@acme.com', 'harry@acme.com', ...]
+        :return: list of user dicts
+
+        Example: Get list of active users:
+            get_workspace_users(ws_id, active=True)
 
         More information on API call output:
-        https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspaces.md#get-workspace-users
+            https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspace_users.md
         """
-        return [u['email'] for u in self._request(
-            'api/v8/workspaces/{0}/users'.format(workspace_id))]
+        return [u for u in self._request(
+            'api/v8/workspaces/{0}/workspace_users'.format(workspace_id),
+            filters=filters)]
 
-    def get_active_workspace_users(self, workspace_id):
-        """ Get list of workspace user names who are active
-        :param workspace_id: toggl workspace id, obtained from get_workspaces
-        :return list of names, e.g. ['John Swift', 'Anton T.', ...]
-
-        More information on API call output:
-        https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspace_users.md
-        """
-        users = self._request('api/v8/workspaces/{0}/workspace_users'.format(workspace_id))
-        # attribute 'inactive' is type of 'bool'
-        return [u['name'] for u in filter(lambda user: user['inactive'] == False, users)]
-
-    def get_projects(self, workspace_id):
+    def get_projects(self, workspace_id, **filters):
         """ Get projects information
         :param workspace_id: toggle workspace id, obtained from get_workspaces
-        :return: list of active project names for a given workspace
+        :return: list of active project dicts
 
         More information on API call output:
         https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspaces.md#get-workspace-projects
         """
-        return [p['name'] for p in
-                self._request('api/v8/workspaces/{0}/projects'
-                              ''.format(workspace_id)) if p['active']]
+        return [p for p in self._request(
+            'api/v8/workspaces/{0}/projects'.format(workspace_id),
+            filters=filters)]
 
     def weekly_report(self, workspace_id, since, until):
         """ Toggl weekly report for a given team """
