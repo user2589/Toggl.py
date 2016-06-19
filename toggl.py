@@ -3,6 +3,7 @@
 
 import json
 import urllib
+import urllib2
 import logging
 
 
@@ -22,15 +23,8 @@ class Toggl(object):
 
     def __init__(self, api_token):
         self.logger = logging.getLogger(__name__)
-        self.api_token = api_token
-        # HTTP Auth magic
-        # TODO: replace with urllib2 opener
-        chunks = self.baseURL.split("//", 1)
-        if len(chunks) < 2:  # no https? in url
-            chunks[:0] = 'https:',
-        self.baseURL = ''.join((chunks[0], "//",
-                                ":".join((self.api_token, 'api_token@')),
-                                chunks[1]))
+        self.auth_header = "Basic {0}".format(
+            ":".join((api_token, 'api_token')).encode("base64").rstrip())
 
     def _build_url(self, api_func, params):
         # build ULR of API request, which looks like:
@@ -41,8 +35,10 @@ class Toggl(object):
         return url
 
     def _get_json(self, url):
+        request = urllib2.Request(url)
+        request.add_header("Authorization", self.auth_header)
         try:
-            response = urllib.urlopen(url)
+            response = urllib2.urlopen(request)
         except IOError:
             self.logger.error('Failed to open url: %s' % url)
             raise
@@ -82,8 +78,7 @@ class Toggl(object):
         Example: Get list of active users:
             get_workspace_users(ws_id, active=True)
 
-        More information on API call output:
-            https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspace_users.md
+        https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspace_users.md
         """
         return [u for u in self._request(
             'api/v8/workspaces/{0}/workspace_users'.format(workspace_id),
@@ -94,7 +89,6 @@ class Toggl(object):
         :param workspace_id: toggle workspace id, obtained from get_workspaces
         :return: list of active project dicts
 
-        More information on API call output:
         https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspaces.md#get-workspace-projects
         """
         return [p for p in self._request(
@@ -116,7 +110,6 @@ class Toggl(object):
     def detailed_report(self, workspace_id, since, until):
         """ Toggl detailed report for a given team
 
-        More information on API call output:
         https://github.com/toggl/toggl_api_docs/blob/master/reports/detailed.md#example
         """
         page = 1
