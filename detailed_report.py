@@ -6,12 +6,12 @@ Export detailed report in CSV using Toggl API
 """
 
 import argparse
-import settings
-import logging
-import datetime
-import sys
 import csv
+import datetime
+import logging
+import sys
 
+import settings
 from toggl import Toggl
 
 
@@ -67,16 +67,13 @@ if __name__ == '__main__':
     end_date = datetime.datetime.strptime(settings.end_date,
                                           settings.date_format)
 
-    if today < start_date or today > end_date:
-        parser.exit(1, "Date {0} is out of the {1}..{2} range.\n Check dates in"
-                       " settings.py\n".format(
-                           today.strftime(settings.date_format),
-                           settings.start_date,
-                           settings.end_date))
+    if today < start_date:
+        parser.exit(1, "Start date ({0}) has not yet come.\n Check dates in"
+                       "the settings.py\n".format(settings.end_date))
 
     # create report
     report_builder = Toggl(settings.api_token)
-    workspaces = report_builder.get_workspaces()
+    workspaces = [(w['name'], w['id']) for w in report_builder.get_workspaces()]
 
     weeks = week_list(start_date, end_date)
 

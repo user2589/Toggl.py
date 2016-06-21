@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import settings
-import datetime
 import csv
+import datetime
 import sys
-
 from collections import defaultdict
 
+import settings
 
 detailed_report_date_format = "%Y-%m-%dT%H:%M:%S"
 
@@ -25,7 +24,7 @@ if __name__ == '__main__':
                     "individual report printed to stadard output.\n Detailed "
                     "report entries also validated, validation notes printed to"
                     " stderr.\n"
-                    "Tipical usage:\n"
+                    "Typical usage:\n"
                     "   ./detailed_report.py | tee detailed_report.csv | "
                     "./individual_report.py > individual_report.csv 2> "
                     "reporting_violations.csv")
@@ -37,7 +36,7 @@ if __name__ == '__main__':
     last_records = {}
     week_names = []
 
-    # report_data[user][team][course] = 0
+    # individual_report[user][team][project][week_name] = hours
     individual_report = defaultdict(
         lambda: defaultdict(
             lambda: defaultdict(
@@ -50,10 +49,6 @@ if __name__ == '__main__':
         sys.stderr, ['user', 'team', 'duration', 'project', 'date', 'rule'])
     err_writer.writeheader()
 
-    # we'll need to go over records twice:
-    # first time to do sanity check on records level and collect time interval
-    # second pass is to aggregate records into individual report
-    # In this loop we do sanity check and collect week names
     for record in reader:
         week_name = week(record['start'])
         if not week_names or week_names[-1] != week_name:
