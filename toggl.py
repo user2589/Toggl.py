@@ -60,14 +60,17 @@ class Toggl(object):
         return [i for i in self._get_json(url)
                 if all(i.get(k) == v for k, v in filters.items())]
 
-    def get_workspaces(self):
+    def get_workspaces(self, **filters):
         """ Get the list of workspaces
         :returns 2-tuple list of workspaces: [(<name>, <id>), ...].
+
+        https://github.com/toggl/toggl_api_docs/blob/master/chapters/workspaces.md#get-workspaces
         """
-        data = self._request('api/v8/workspaces')
+
+        data = self._request('api/v8/workspaces', **filters)
 
         # filter out personal workspaces:
-        return [(w['name'], w['id']) for w in data
+        return [w for w in data
                 if 'personal' not in w['name'] and w['admin']]
 
     def get_workspace_users(self, workspace_id, **filters):
