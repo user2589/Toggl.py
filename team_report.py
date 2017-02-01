@@ -3,12 +3,8 @@
 
 import argparse
 import csv
-import datetime
-import sys
 from collections import defaultdict
 import math
-
-import settings
 
 
 def std(values):
@@ -25,15 +21,16 @@ if __name__ == '__main__':
                     "   ./detailed_report.py | tee detailed_report.csv | "
                     "./individual_report.py 2> reporting_violations.csv | "
                     "tee individual_report.csv | ./team_report.py > team.csv")
+    parser.add_argument('-i', '--input', default="-", nargs="?",
+                        type=argparse.FileType('r'),
+                        help='File to use as input, empty or "-" for stdin')
+    parser.add_argument('-o', '--output', default="-",
+                        type=argparse.FileType('w'),
+                        help='Output filename, "-" or skip for stdout')
     args = parser.parse_args()
 
-    start_date = datetime.datetime.strptime(settings.start_date,
-                                            settings.date_format)
-    end_date = datetime.datetime.strptime(settings.end_date,
-                                          settings.date_format)
-
     # reader record = ['user', 'team', 'project', 'avg'] + week_names
-    reader = csv.DictReader(sys.stdin)
+    reader = csv.DictReader(args.input)
     # we need to keep weeks order for symbolic names
     week_names = reader.fieldnames[4:]
 
@@ -63,7 +60,7 @@ if __name__ == '__main__':
         team_members[record['team']].add(record['user'])
 
     report_writer = csv.DictWriter(
-        sys.stdout, ['team', 'project', 'average', 'std'] + week_names)
+        args.output, ['team', 'project', 'average', 'std'] + week_names)
     report_writer.writeheader()
 
     for team, team_records in team_report.items():

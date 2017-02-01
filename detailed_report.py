@@ -9,7 +9,6 @@ import argparse
 import csv
 import datetime
 import logging
-import sys
 
 import settings
 from toggl import Toggl
@@ -37,6 +36,9 @@ if __name__ == '__main__':
                     "standard output.\n"
                     "Typical usage:\n"
                     "./detailed_report.py > detailed_report.csv")
+    parser.add_argument('-o', '--output', default="-",
+                        type=argparse.FileType('w'),
+                        help='Output filename, "-" or skip for stdout')
     parser.add_argument('-d', '--date', help='system date override, YYYY-MM-DD')
     parser.add_argument('-v', '--verbose',  default=3,
                         help="Verboseness, 5: debug, 1: quiet, default: 3")
@@ -45,8 +47,11 @@ if __name__ == '__main__':
                              "default)")
     args = parser.parse_args()
 
-    # configure verboseness
-    try:
+    date_format = "%Y-%m-%d"
+    start_date = settings.start_date
+    end_date = settings.end_date
+
+    try:  # verboseness
         verboseness = max(1, 5 - int(args.verbose) * 1) * 10
     except ValueError:
         verboseness = 30
@@ -55,32 +60,25 @@ if __name__ == '__main__':
     today = datetime.datetime.now()
     if args.date is None:
         logging.debug("No date specified, using system date: %s",
-                      today.strftime(settings.date_format))
+                      today.strftime(date_format))
     else:
         try:
-            today = datetime.datetime.strptime(args.date, settings.date_format)
+            today = datetime.datetime.strptime(args.date, date_format)
         except ValueError:
             parser.exit(1, "Invalid date\n")
 
-    start_date = datetime.datetime.strptime(settings.start_date,
-                                            settings.date_format)
-    end_date = datetime.datetime.strptime(settings.end_date,
-                                          settings.date_format)
-
     if today < start_date:
         parser.exit(1, "Start date ({0}) has not yet come.\n Check dates in"
-                       "the settings.py\n".format(settings.end_date))
+                       "the settings.py\n".format(start_date))
 
     # create report
-    report_builder = Toggl(settings.api_token)
-    workspaces = [(w['name'], w['id']) for w in report_builder.get_workspaces()]
+    toggl = Toggl(settings.api_token)
+    workspaces = [(w['name'], w['id']) for w in toggl.get_workspaces()]
 
     weeks = week_list(start_date, end_date)
 
-    last_records = {}  # last_records[user] = last_record
-
     report_writer = csv.DictWriter(
-        sys.stdout, ['user', 'team', 'project', 'start', 'duration'])
+        args.output, ['user', 'team', 'project', 'start', 'duration'])
     report_writer.writeheader()
 
     for (monday, sunday) in weeks:
@@ -90,9 +88,9 @@ if __name__ == '__main__':
         for ws_name, ws_id in workspaces:
             inactive_users = set() if args.all else \
                 set(u['name'] for u in
-                    report_builder.get_workspace_users(ws_id, inactive=True))
+                    toggl.get_workspace_users(ws_id, inactive=True))
 
-            for record in report_builder.detailed_report(ws_id, monday, sunday):
+            for record in toggl.detailed_report(ws_id, monday, sunday):
                 # exclude inactive users
                 if record['user'] in inactive_users:
                     continue
