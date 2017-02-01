@@ -152,9 +152,32 @@ class Toggl(object):
         return [w for w in data
                 if 'personal' not in w['name'] and w['admin']]
 
-    def get_workspace_users(self, workspace_id, **filters):
+    def add_workspace(self, name, admins_only=False, **params):
+        """ Creates a workspace with free subscription
+        :param name: desired workspace name
+        :param admins_only: only admins can see the team dashboard
+        :param params: dict of other settings. Fields are the same as
+            get_workspaces output
+        :returns None. Raises Toggl exception if something went wrong
+
+        Undocumented
+        """
+        params['name'] = name
+        params['only_admins_see_team_dashboard'] = admins_only
+        self._request('/api/v9/workspaces', body=json.dumps(params))
+
+    def delete_workspace(self, wid):
+        """ Delete workspaces with the specified IDs
+        :param wid: list of int/str workspace ids
+        :returns None. Raises Toggl exception if something went wrong
+
+        Undocumented
+        """
+        self._request("/api/v8/workspaces/{}/leave".format(wid), method='DELETE')
+
+    def get_workspace_users(self, wid, **filters):
         """ Get the list of workspace users.
-        :param workspace_id: toggle workspace id, obtained from get_workspaces
+        :param wid: toggle workspace id, obtained from get_workspaces
         :return: list of user dicts
 
         Example: Get list of active users:
@@ -186,7 +209,53 @@ class Toggl(object):
             '/api/v8/workspaces/{0}/projects'.format(wid),
             filters=filters)
 
-    def weekly_report(self, workspace_id, since, until):
+    def add_project(self, wid, project_name, is_private=False, active=True):
+        """ Create a project in the workspace
+        :param wid: int workspace id
+        :param project_name: str project name
+        :param is_private: visible to all workspace members
+        :param active: visible in the workspace
+        :return: project instance if project was created, None otherwise
+        """
+        existing_projects = [p['name'] for p in self.get_projects(wid)]
+        if project_name not in existing_projects:
+            params = {
+                'wid': wid,
+                'is_private': is_private,
+                'active': active,
+                'name': project_name
+            }
+            return self._request('/api/v9/workspaces/%s/projects' % wid,
+                                 method='POST', body=json.dumps(params))
+
+    def update_project(self, wid, project_id, **params):
+        """  Add projects to the specified workspace.
+        :param wid: workspace id
+        :param project_id: str project name
+        :return: project instance
+
+        Undocumented
+        """
+        params.update({
+            'guid': project_id,
+            'wid': wid
+        })
+        return self._request('/api/v9/workspaces/%s/projects/%s' %
+                             (wid, project_id),
+                             method='PUT', body=json.dumps(params))
+
+    def delete_project(self, wid, project_id):
+        """ Delete workspaces with the specified IDs
+        :param wid: int workspace id
+        :param project_id: str or int project id
+        :returns None. Raises Toggl exception if something went wrong
+
+        Undocumented
+        """
+        return self._request('/api/v9/workspaces/%s/projects/%s' %
+                             (wid, project_id), method='DELETE')
+
+    def weekly_report(self, wid, since, until):
         """ Toggl weekly report for a given team """
         return self._request('/reports/api/v2/weekly', {
             'workspace_id': wid,
