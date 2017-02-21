@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import argparse
 import csv
@@ -28,6 +27,12 @@ if __name__ == '__main__':
                     "   ./detailed_report.py | tee detailed_report.csv | "
                     "./individual_report.py > individual_report.csv 2> "
                     "reporting_violations.csv")
+    parser.add_argument('-i', '--input', default="-", nargs="?",
+                        type=argparse.FileType('r'),
+                        help='File to use as input, empty or "-" for stdin')
+    parser.add_argument('-o', '--output', default="-",
+                        type=argparse.FileType('w'),
+                        help='Output filename, "-" or skip for stdout')
     parser.add_argument('-n', '--threshold', type=int, default=10,
                         help='time record threshold in hours')
     args = parser.parse_args()
@@ -43,7 +48,7 @@ if __name__ == '__main__':
                 lambda: defaultdict(lambda: 0))))
 
     # record.keys() = ['user', 'team', 'project', 'start', 'duration']
-    reader = csv.DictReader(sys.stdin)
+    reader = csv.DictReader(args.input)
 
     err_writer = csv.DictWriter(
         sys.stderr, ['user', 'team', 'duration', 'project', 'date', 'rule'])
@@ -114,7 +119,7 @@ if __name__ == '__main__':
 
     # Now we'll aggregate stats, calculate average etc
     report_writer = csv.DictWriter(
-        sys.stdout, ['user', 'team', 'project', 'average'] + week_names)
+        args.output, ['user', 'team', 'project', 'average'] + week_names)
     report_writer.writeheader()
 
     for user, user_records in individual_report.items():

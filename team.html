@@ -24,8 +24,11 @@ body {
     font-size:2em;
     margin-top:3em;
 }
+
 .chart {}
 .table {}
+.google-visualization-table-th {min-width:4em;}
+.even {page-break-after: always}
     </style>
 </head>
 
@@ -58,18 +61,18 @@ var settings = settings || {
     // Everything not in this list will be counted as electives
     core_projects: [ // some duplication with details.html
         // TODO: move settings to an external js file
-        'Software Development Studio I',
-        'Software Development Studio II',
-        'Software Development Studio III',
-        'MSIT Project I',
-        'MSIT Project II',
-        'Models of Software Systems',
-        'Methods: Deciding What to Design',
-        'Managing Software Development',
-        'Analysis of Software Artifacts',
-        'Architectures for Software Systems',
-        'Communication for Software Engineers I',
-        'Communication for Software Engineers II'
+        '17-671 Software Development Studio I',
+        '17-672 Software Development Studio II',
+        '17-673 Software Development Studio III',
+        '17-677 MSIT Project I',
+        '17-678 MSIT Project II',
+        '17-651 Models of Software Systems',
+        '17-652 Methods: Deciding What to Design',
+        '17-653 Managing Software Development',
+        '17-654 Analysis of Software Artifacts',
+        '17-655 Architectures for Software Systems',
+        '17-656 Communication for Software Engineers I',
+        '17-657 Communication for Software Engineers II'
     ],
     // courses not in core_projects will be aggregated in this meta-course
     everything_else: 'electives', // has to be different from core_projects
@@ -108,7 +111,7 @@ var settings = settings || {
                     var avg = parseFloat(str_avg),
                         std = parseFloat(str_std),
                         data = [];
-                    for (var i=1; i < str_data.length; i++) data.push(parseFloat(str_data[i]));
+                    for (var i=0; i < str_data.length; i++) data.push(parseFloat(str_data[i]));
                     while (data.length < week_labels.length) data.push(null);
                     if (!(proj in report_data)) report_data[proj] = {};
                     if (team in report_data[proj]) { // it was already added, merge (e.g. if proj is not in core_projects)
@@ -134,16 +137,16 @@ var settings = settings || {
                     if (settings.core_projects.indexOf(proj)<0) proj = settings.everything_else;
                     add_record(team, proj, data, avg, std);
                     if (settings.enable_total) add_record(team,settings.total_label,data,avg,std);
-                    if (report_data['MSIT Project I'] && report_data['MSIT Project I']['MSIT-ITeco'])
-                        console.log(report_data['MSIT Project I']['MSIT-ITeco']['data']);
                 }
 
                 // draw the charts
+                var even = true;
                 settings.core_projects.forEach(function(proj, index){
                     if (!(proj in report_data)) return;
 
+                    even = !even;
                     $('#container').append(
-                        "<div class='"+index+"' id='"+proj+"-container'>" +
+                        "<div class='"+index+(even ? " even": "")+"' id='"+proj+"-container'>" +
                             "<div class='header' id='"+proj+"-header'>" + proj + "</div>" +
                             "<div class='chart' id='"+proj+"-chart'>" + "</div>" +
                             "<div class='table' id='"+proj+"-table'>" + "</div>" +
