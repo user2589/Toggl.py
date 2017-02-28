@@ -48,7 +48,6 @@ if __name__ == '__main__':
 
     date_format = "%Y-%m-%d"
     start_date = settings.start_date
-    end_date = settings.end_date
 
     try:  # verboseness
         verboseness = max(1, 5 - int(args.verbose) * 1) * 10
@@ -74,7 +73,7 @@ if __name__ == '__main__':
     toggl = Toggl(settings.api_token)
     workspaces = [(w['name'], w['id']) for w in toggl.get_workspaces()]
 
-    weeks = week_list(start_date, end_date)
+    weeks = week_list(start_date, today)
 
     report_writer = csv.DictWriter(
         args.output, ['user', 'team', 'project', 'start', 'duration'])
