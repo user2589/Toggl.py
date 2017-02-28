@@ -5,6 +5,7 @@ import json
 import urllib
 import logging
 import time
+import base64
 
 
 class TogglException(IOError):
@@ -33,16 +34,18 @@ class Toggl(object):
     _cache = None
 
     def __init__(self, api_token, cache=True):
+        auth = api_token + ':api_token'
         if sys.version_info > (3,):  # Python 2/3 compatibility
-            import http
+            import http.client
             self.connection = http.client.HTTPSConnection(self.baseURL)
+            auth = bytes(auth, 'ascii')
         else:
             import httplib
             self.connection = httplib.HTTPSConnection(self.baseURL)
 
         self.logger = logging.getLogger(__name__)
         self.auth_header = {'Authorization': "Basic %s" %
-                            (api_token + ':api_token').encode("base64").rstrip()}
+                                             base64.b64encode(auth).rstrip()}
         self.cache = cache
         self.flush()
 
