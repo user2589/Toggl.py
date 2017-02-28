@@ -2,7 +2,6 @@
 
 import sys
 import json
-import urllib
 import logging
 import time
 import base64
@@ -32,20 +31,25 @@ class Toggl(object):
     # rate caching
     cache = True
     _cache = None
+    urlencode = None
 
     def __init__(self, api_token, cache=True):
         auth = api_token + ':api_token'
         if sys.version_info > (3,):  # Python 2/3 compatibility
             import http.client
+            import urllib.parse
+            self.urlencode = urllib.parse.urlencode
             self.connection = http.client.HTTPSConnection(self.baseURL)
             auth = bytes(auth, 'ascii')
         else:
             import httplib
+            import urllib
+            self.urlencode = urllib.urlencode
             self.connection = httplib.HTTPSConnection(self.baseURL)
 
         self.logger = logging.getLogger(__name__)
         self.auth_header = {'Authorization': "Basic %s" %
-                                             base64.b64encode(auth).rstrip()}
+                                    base64.b64encode(auth).rstrip().decode()}
         self.cache = cache
         self.flush()
 
@@ -79,7 +83,7 @@ class Toggl(object):
                 (url, response.status, response_text))
 
         self.logger.debug("Response from Toggl: %s" % response_text)
-        response_json = json.loads(response_text)
+        response_json = json.loads(response_text.decode('utf8'))
         if 'error' in response_json:
             raise TogglException("""Error getting Toggl data:
             message: %(message)s
@@ -102,7 +106,7 @@ class Toggl(object):
         :return: arbitrary object or a list of objects retured by the specified
                 API function and filtered with the specified filters
         """
-        query = '' if params is None else '?' + urllib.urlencode(params)
+        query = '' if params is None else '?' + self.urlencode(params)
         url = api_func + query
         if body is not None and method == 'GET':
             method = 'POST'
